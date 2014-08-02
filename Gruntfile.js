@@ -2,6 +2,16 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
+    jekyll: {// https://github.com/dannygarcia/grunt-jekyll
+      build: {                             
+        options: {                     
+          bundleExec: true,
+          serve: false,
+          watch: false
+        }
+      }
+    },
+
     compass: {// https://github.com/gruntjs/grunt-contrib-compass
       options: {
         config: 'config.rb',
@@ -18,13 +28,13 @@ module.exports = function(grunt) {
     },
 
     shell: {// https://github.com/sindresorhus/grunt-shell
-      update_bundler: {
+      install_bundler: {
         command: 'bundle install'
       },
-      update_bower: {
+      install_bower: {
         command: 'bower install'
       },
-      update_node: {
+      install_node: {
         command: 'npm install'
       }
     },
@@ -48,35 +58,32 @@ module.exports = function(grunt) {
 //          spawn: false
 //        },
         files: [
-          'source/**/*',
-          '!**/source/scss/**', // watch:scss has this
-          '!**/source/css/**', // watch:scss has this
-          '!**/source/images/icons/src/**', // watch:icons has this
-          '!**/source/images/icons/templates/*', // watch:icons has this
-          '!**/source/images/icons/unused-library/*', // watch:icons has this
-          '!**/source/images/icons/output/**', // watch:icons has this
+          '**/*',
+          '!_site/**/*',
+          '!**/scss/**', // watch:scss has this
+          '!**/css/**', // watch:scss has this
+          '!**/node_modules/**', // IGNORE node
           '!**/bower_components/**' // IGNORE bower_components
         ],
-        tasks: ['shell:pattern_lab_build']
+        tasks: ['jekyll:build']
       },
       scss: {
         files: [
-          'source/scss/**/*.scss',
-          'public/styleguide/css/styleguide-specific.scss'
+          'scss/**/*.scss'
         ],
         tasks: [
           'compass:compile',
-          'shell:pattern_lab_build'
+          'jekyll:build'
         ]
       },
       public: {
         options: {
           livereload: true
         },
-        files: ['public/latest-change.txt']
+        files: ['_site/*']
       },
       js_for_errors: {
-        files: ['source/js/script.js'],
+        files: ['js/*.js'],
         tasks: ['jshint:js']
       }
     },
@@ -103,17 +110,12 @@ module.exports = function(grunt) {
             grunt: true,
             stream: false,
             args: ['watch:public']
-          },
-          {
-            grunt: true,
-            stream: true,
-            args: ['watch:js_for_errors']
-          },
-          {
-            grunt: true,
-            stream: true,
-            args: ['watch:icons']
           }
+          // {
+          //   grunt: true,
+          //   stream: true,
+          //   args: ['watch:js_for_errors']
+          // }
         ]
       }
     },
@@ -166,50 +168,19 @@ module.exports = function(grunt) {
 
   require('load-grunt-tasks')(grunt); // loads ALL dependencies in package.json. So this is not needed: `grunt.loadNpmTasks('grunt-contrib-connect');`
 
-  // just playing around
-//    grunt.registerTask('testlog', "let us test the log", function() {
-//        grunt.task.run('build');
-//        grunt.log.error('TESasdfT');
-//    });
-//
-//    grunt.task.registerTask('foo', 'A sample task that logs stuff.', function(arg1, arg2) {
-//        if (arguments.length === 0) {
-//            grunt.log.writeln(this.name + ", no args");
-//        } else {
-//            grunt.log.writeln(this.name + ", " + arg1 + " " + arg2);
-//        }
-//    });
-
-  grunt.registerTask('cleanup_font_icon_build', 'Renaming some stuff', function() {
-    grunt.file.copy('source/_patterns/00-atoms/04-images/icons.html', 'source/_patterns/00-atoms/04-images/icons.mustache');
-    grunt.file.delete('source/_patterns/00-atoms/04-images/icons.html');
-  });
-
   grunt.registerTask('watch_compass', 'compass:watch');
-  grunt.registerTask('watch_pl', 'shell:pattern_lab_watch');
   grunt.registerTask('build', [
-//    'create_icons',
     'compass:compile',
-    'wiredep',
-    'shell:pattern_lab_build',
+    'jekyll:build',
     'notify:build'
   ]);
-  grunt.registerTask('update', [
-    'shell:update_bundler',
-    'shell:update_node',
-    'shell:update_bower'
-  ]);
-  grunt.registerTask('deploy', [
-    'shell:deploy',
-    'notify:done'
-  ]);
-  grunt.registerTask('create_font_icons', [
-    'webfont:icons',
-    'cleanup_font_icon_build'
+  grunt.registerTask('install', [
+    'shell:install_bundler',
+    'shell:install_node',
+    'shell:install_bower'
   ]);
 
   grunt.registerTask('default', [
-    'update',
     'build',
     'parallel:watch'
   ]);
