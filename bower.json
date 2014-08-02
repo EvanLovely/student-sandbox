@@ -1,0 +1,21 @@
+{
+  "name": "student-sandbox",
+  "version": "0.0.0",
+  "description": "Components for work via Bower",
+  "keywords": [
+    "js"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "_site/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~1.10.2"
+  }
+}
